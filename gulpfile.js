@@ -8,6 +8,7 @@ const ts = require('gulp-typescript');
 const tsProject = ts.createProject('tsconfig.json');
 const babel = require('gulp-babel');
 const sourcemaps = require('gulp-sourcemaps');
+
 // Paths
 const output = {
     js: './dist/js',
@@ -35,7 +36,10 @@ function html() {
         .pipe(pug({
             pretty: true,
         }))
-        .pipe(gulp.dest('./dist'))
+        .pipe(gulp.dest( (file) => {
+            const pathFromSrc = file.base.replace(/(.*?src)/, '');
+            return `./dist${pathFromSrc}`
+        }))
         .pipe(browserSync.stream())
 }
     
@@ -56,7 +60,7 @@ function js() {
 function watch() {
     browserSync.init({
         server: {
-            baseDir: './dist'
+            baseDir: 'dist'
         }
     })
     gulp.watch('./src/**/*.scss', style);
