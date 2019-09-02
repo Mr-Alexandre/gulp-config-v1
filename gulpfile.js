@@ -15,18 +15,26 @@ const output = {
     css: './dist/css',
     assets: './dist/assets',
     html: './dist/pages',
-}
+};
 
 function style() {
     return gulp.src('./src/*.scss')
-        .pipe(sass())
+        .pipe(sourcemaps.init())
+        .pipe(sass().on('error', sass.logError))
         .pipe(autoprefixer({
-            browsers: ['ie >= 9', 'last 4 version'],
             cascade: false
         }))
-        .pipe(cleanCSS({
-            compatibility: 'ie9'
-        }))
+        .pipe(cleanCSS(
+        {
+                debug: true,
+                compatibility: 'ie9'
+            },
+        (details) => {
+                console.log(`Original file   - ${details.name}: ${details.stats.originalSize}`);
+                console.log(`Compressed file - ${details.name}: ${details.stats.minifiedSize}`);
+            }
+        ))
+        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(output.css))
         .pipe(browserSync.stream())
 }
@@ -58,13 +66,16 @@ function js() {
 }
 
 function watch() {
+    html();
+    style();
+    js();
     browserSync.init({
         server: {
             baseDir: 'dist'
         }
-    })
-    gulp.watch('./src/**/*.scss', style);
+    });
     gulp.watch('./src/**/*.pug', html);
+    gulp.watch('./src/**/*.scss', style);
     gulp.watch('./src/**/*.ts', js);
 }
 
